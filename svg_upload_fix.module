@@ -1,0 +1,117 @@
+<?php
+
+/**
+ * Implements hook_field_widget_form_alter().
+ *
+ * This hook alters the widget form for image fields to allow SVG uploads.
+ * It checks if 'svg' is an allowed extension and, if found, removes the 
+ * 'file_validate_is_image' validator for SVG files, as SVG is not a raster image.
+ * 
+ * @param array $element
+ *   The form element to alter.
+ * @param array $form_state
+ *   The current state of the form.
+ * @param array $context
+ *   An associative array containing information about the field and instance.
+ */
+function svg_upload_fix_field_widget_form_alter(&$element, &$form_state, $context) {
+  // Check if the field type is an image field.
+  if ($context['field']['type'] === 'image') {
+    // Get allowed file extensions for the field.
+    $allowed_extensions = explode(' ', $context['instance']['settings']['file_extensions']);
+
+    // Check if SVG is among the allowed file extensions.
+    if (in_array('svg', $allowed_extensions)) {
+      // Iterate over the field items.
+      foreach (element_children($element) as $delta) {
+        $field_item = $element[$delta];
+
+        // Check if there are upload validators and if file extensions are being validated.
+        if (!empty($field_item['#upload_validators']['file_validate_extensions'])) {
+          $upload_validators = $field_item['#upload_validators']['file_validate_extensions'][0];
+
+          // Check if 'svg' is part of the allowed extensions for the field.
+          if (strpos($upload_validators, 'svg') !== FALSE) {
+            // Remove the 'file_validate_is_image' validator for SVG files.
+            // SVG is not a raster image, so this validation should be bypassed.
+            unset($field_item['#upload_validators']['file_validate_is_image']);
+          }
+        }
+
+        // Re-assign the altered field item back to the element.
+        $element[$delta] = $field_item;
+      }
+    }
+  }
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for field_ui_field_edit_form.
+ *
+ * This hook alters the field edit form for image fields to allow SVG uploads.
+ * It checks if 'svg' is an allowed extension for the field and processes both
+ * instance-specific and field-specific default images to ensure that SVG 
+ * files can be uploaded. The upload location is set according to the 
+ * specified file directory.
+ *
+ * @param array &$form
+ *   The complete form structure for the field edit form.
+ * @param array &$form_state
+ *   An associative array containing the current state of the form.
+ */
+function svg_upload_fix_form_field_ui_field_edit_form_alter(&$form, &$form_state) {
+  // Check if the field is of type 'image'.
+  if ($form['#field']['type'] === 'image') {
+    // Get allowed file extensions for the field.
+    $allowed_extensions = explode(' ', $form['#instance']['settings']['file_extensions']);
+    
+    // Proceed only if SVG is among the allowed extensions.
+    if (in_array('svg', $allowed_extensions)) {
+      // Process both instance-specific and field-specific default images.
+      $file_directory = $form['#instance']['settings']['file_directory'];
+      svg_upload_fix_add_svg_support($form['instance']['settings']['default_image'], $file_directory);
+      svg_upload_fix_add_svg_support($form['field']['settings']['default_image'], $file_directory);
+    }
+  }
+}
+
+/**
+ * Helper function to add SVG upload support to default image settings.
+ *
+ * This function modifies the default image settings to ensure that SVG files
+ * can be uploaded as valid images. It checks if the existing upload validators
+ * for the default image settings contain a 'file_validate_extensions' validator
+ * and, if so, appends 'svg' to the list of allowed extensions. If the validator
+ * does not exist, it initializes a new one with 'svg' as the only entry.
+ *
+ * By adding the SVG extension to the upload validators, this function allows
+ * images of type SVG to be uploaded through the specified field without
+ * disrupting the functionality of other existing image upload capabilities.
+ * Additionally, it sets the upload location to the designated file directory
+ * for proper storage of the uploaded SVG images.
+ *
+ * @param array &$default_image
+ *   The default image settings to be modified.
+ */
+function svg_upload_fix_add_svg_support(&$default_image, $file_directory) {
+  // Initialize $default_image as an array if it is not one already.
+  if (!is_array($default_image)) {
+    $default_image = [];
+  }
+
+  // Ensure the upload validators array exists.
+  if (!isset($default_image['#upload_validators'])) {
+    $default_image['#upload_validators'] = [];
+  }
+
+  // Add SVG to the file_validate_extensions validator, ensuring unique entries.
+  $default_image['#upload_validators']['file_validate_extensions'] = array_unique(array_merge(
+    isset($default_image['#upload_validators']['file_validate_extensions']) ? (array)$default_image['#upload_validators']['file_validate_extensions'] : [],
+    ['svg']
+  ));
+
+  // Set the upload location to the field-specific file directory if provided.
+  if (!empty($file_directory)) {
+    $default_image['#upload_location'] = 'public://' . trim($file_directory, '/') . '/';
+  }
+}

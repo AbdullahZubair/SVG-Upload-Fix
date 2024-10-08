@@ -1,0 +1,7 @@
+name = SVG Upload Fix
+description = Modifies image field upload process to remove image validator for SVG files, allowing successful uploads.
+core = 7.x
+package = Custom
+version = 1.0.0
+
+dependencies[] = svg_image

@@ -1,0 +1,16 @@
+{
+  "name": "abdullahzubair/svg-upload-fix",
+  "type": "drupal-module",
+  "description": "SVG Upload Fix - A module that modifies the image field upload process to bypass image validation for SVG files.",
+  "homepage": "https://github.com/abdullahzubair/svg-upload-fix",
+  "license": "GPL-2.0+",
+  "support": {
+    "issues": "https://github.com/abdullahzubair/svg-upload-fix/issues"
+  },
+  "require": {
+    "composer/installers": "^1.0.0"
+  },
+  "extra": {
+    "installer-name": "svg_upload_fix"
+  }
+}
