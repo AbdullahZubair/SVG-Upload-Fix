@@ -6,7 +6,7 @@ To make matters worse, when I tried to set an SVG as the default image, I receiv
 
 *“'default.svg' could not be uploaded. Only files with the following extensions are allowed: jpg, jpeg, gif, png, txt, doc, xls, pdf, ppt, pps, odt, ods, odp.”*
 
-Determined to find a solution, I dove into the issue and came across an ongoing discussion in [Issue #3458204](https://www.drupal.org/project/issues/svg_image/3458204). It became evident that I wasn't alone in facing this challenge. While a patch had been provided by a dear friend, [Sam](https://www.drupal.org/u/isalmanhaider), I was hesitant to modify the core functionality of Drupal. Though I tried the patch and successfully resolved the node creation error, the default image issue persisted.
+Determined to find a solution, I dove into the issue and came across an ongoing discussion in [Issue #3458204](https://www.drupal.org/project/svg_image/issues/3458204). It became evident that I wasn't alone in facing this challenge. While a patch had been provided by a dear friend, [Sam](https://www.drupal.org/u/isalmanhaider), I was hesitant to modify the core functionality of Drupal. Though I tried the patch and successfully resolved the node creation error, the default image issue persisted.
 
 After digging deeper, I realized that when uploading files through the node creation form, Drupal attempts to validate the image type. Since raster and vector images are fundamentally different, SVG files were not being validated correctly, leading to the errors I was encountering.
 
